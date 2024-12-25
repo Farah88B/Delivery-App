@@ -22,10 +22,8 @@ class RegisterationRequest extends FormRequest
     public function rules(): array
     {
         return [
-
             'mobile' => 'required|unique:users,mobile|digits:10',
             'password' => 'required|string|min:6',
-
         ];
     }
 }

@@ -6,23 +6,47 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\RegisterationRequest;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class RegisterationController extends Controller
 {
-    public function register(RegisterationRequest $request)
+    public function register(Request $request)
     {
-        $newuser = $request->validated();
-        $newuser['password'] = Hash::make($newuser['password']);
-        $newuser['role'] = 'user';
+        try {
+            // تحقق من البيانات
+            $validatedData = $request->validate([
+                'mobile' => 'required|unique:users,mobile|digits:10',
+                'password' => 'required|string|min:6',
+                'preferred_language' => 'required|in:en,ar', // تحقق من أن اللغة هي en أو ar
+            ]);
 
-        $user = User::create($newuser);
+            // إعداد بيانات المستخدم
+            $newuser = [
+                'mobile' => $validatedData['mobile'],
+                'password' => Hash::make($validatedData['password']),
+                'preferred_language' => $validatedData['preferred_language'],
+            ];
 
-        $success['token'] = $user->createToken('user', ['app:all'])->plainTextToken;
-        $success['mobile'] = $user->mobile;
+            // إنشاء المستخدم
+            $user = User::create($newuser);
 
-        return response()->json([
-            'Data' => $success,
-            'message' => 'User registered successfully'
-        ], 200);
+            // إعداد بيانات النجاح
+            $success['token'] = $user->createToken('user', ['app:all'])->plainTextToken;
+            $success['mobile'] = $user->mobile;
+
+            return response()->json([
+                'Data' => $success,
+                'message' => 'User registered successfully',
+            ], 200);
+        } catch (ValidationException $e) {
+            // إرجاع رسالة الخطأ الأولى
+            $message = $e->validator->errors()->first();
+
+            return response()->json([
+                'message' => $message,
+            ], 422);
+        }
     }
+
 }

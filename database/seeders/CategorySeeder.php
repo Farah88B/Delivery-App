@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Category;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -13,13 +14,35 @@ class CategorySeeder extends Seeder
      */
     public function run(): void
     {
-        DB::table('categories')->insert([
-            ['id'=> 1 ,'name' => 'Fast Food', 'description' => 'Quick and affordable meals'
-                ,'image'=>'public/images/categories/fastfood.jpg'],
-            ['id'=> 2, 'name' => 'Cafe', 'description' => 'Coffee and snacks'
-            ,'image'=>'public/images/categories/cafe.jpg'],
-            ['id'=>3 ,'name' => 'Fine Dining', 'description' => 'Luxury and elegant meals',
-                'image'=>'public/images/categories/finedining.jpg'],
-        ]);
+        // تعريف المصفوفة
+        $categories = [
+            [
+                'name_en' => 'Fast Food',
+                'name_ar'=>'وجبات سريعة',
+                'description_en' => 'Quick and affordable meals',
+                'description_ar'=>'وحبات سريعة ومطلوبة',
+                'image' => 'public/images/categories/fastfood.jpg',
+            ],
+            [
+                'name_en' => 'Drinks',
+                'name_ar'=>'مشروبات',
+                'description_en' => 'Drinks Hot & Colds',
+                'description_ar'=>'مشروبات باردة وساخنة',
+                'image' => 'public/images/categories/cafe.jpg',
+            ],
+            [
+                'name_en' => 'Fine Dining',
+                'name_ar'=>'وجبات غربية',
+                'description_en' => 'Luxury and elegant meals',
+                'description_ar'=>'شي ما ترجمتو لسا',
+                'image' => 'public/images/categories/finedining.jpg',
+            ],
+        ];
+
+        // استخدام المصفوفة لإدخال البيانات
+        foreach ($categories as $category) {
+            Category::create($category);
+        }
     }
+
 }

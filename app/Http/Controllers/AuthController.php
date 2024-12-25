@@ -4,46 +4,60 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Services\TwilioService;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 
 class AuthController extends Controller
 {
     public function login(Request $request)
     {
-        $request->validate([
-            'mobile' => 'required|numeric|digits:10',
-            'password' => 'required|string|min:6',
-        ]);
+        try {
+            $request->validate([
+                'mobile' => 'required|numeric|digits:10',
+                'password' => 'required|string|min:6',
+            ]);
 
-        // البحث عن المستخدم
-        $user = User::where('mobile', $request['mobile'])->first();
+            // البحث عن المستخدم
+            $user = User::where('mobile', $request['mobile'])->first();
 
-        if (!$user || !Hash::check($request['password'], $user->password)) {
-            return response()->json(['message' => 'Invalid Password Or Mobile'], 401);
+            if (!$user || !Hash::check($request['password'], $user->password)) {
+                return response()->json(['message' => 'Invalid Password Or Mobile'], 401);
+            }
+
+            // توليد OTP وإرساله
+            $otp = rand(100000, 999999);
+            $user->update([
+                'otp' => $otp,
+                'otp_expires_at' => now()->addMinutes(5),
+            ]);
+
+            // استدعاء TwilioService لإرسال OTP
+            $twilio = new TwilioService();
+            $message = "Your verification code is: $otp";
+
+            $sendStatus = $twilio->sendSMS("+963.$user->mobile", $message);
+
+            if ($sendStatus !== true) {
+                return response()->json([
+                    'message' => 'Failed to send OTP.',
+                    //'error' => $sendStatus
+                ], 500);
+            }
+
+            return response()->json(
+                [
+                    'message' => 'OTP sent successfully.',
+                ], 200);
+
+        }catch (ValidationException $e){
+            $message = $e->validator->errors()->first();
+            return response()->json([
+                'message' => $message
+            ], 422); // كود 422 يشير إلى خطأ في التحقق
         }
-
-        // توليد OTP وإرساله
-        $otp = rand(100000, 999999);
-        $user->update([
-            'otp' => $otp,
-            'otp_expires_at' => now()->addMinutes(5),
-        ]);
-
-        // استدعاء TwilioService لإرسال OTP
-        $twilio = new TwilioService();
-        $message = "Your verification code is: $otp";
-
-        $sendStatus = $twilio->sendSMS("+963.$user->mobile", $message);
-
-        if ($sendStatus !== true) {
-            return response()->json(['message' => 'Failed to send OTP.', 'error' => $sendStatus], 500);
-        }
-
-        return response()->json(
-            ['message' => 'OTP sent successfully.',
-            ],200);
     }
 
     // التحقق من OTP
@@ -117,14 +131,15 @@ class AuthController extends Controller
 
     public function verifyResetCode(Request $request)
     {
+       $user_id =  Auth::user()->id;
         // 1. التحقق من البيانات
         $request->validate([
-            'mobile' => 'required|digits:10',
+          //  'mobile' => 'required|digits:10',
             'reset_code' => 'required|digits:6',
         ]);
 
         // 2. البحث عن المستخدم
-        $user = User::where('mobile', $request['mobile'])
+        $user = User::find($user_id)
             ->where('reset_code', $request['reset_code'])
             ->where('reset_code_expires_at', '>', Carbon::now())
             ->first();
@@ -140,13 +155,11 @@ class AuthController extends Controller
     {
         // 1. التحقق من البيانات
         $request->validate([
-            'mobile' => 'required|digits:10',
-            'reset_code' => 'required|digits:6',
-            'new_password' => 'required|string|min:6',
+            'new_password' => 'required|confirmed|string|min:6',
         ]);
-
+        $user_id =  Auth::user()->id;
         // 2. البحث عن المستخدم والتحقق من الرمز
-        $user = User::where('mobile', $request['mobile'])
+        $user = User::find($user_id)
             ->where('reset_code', $request['reset_code'])
             ->where('reset_code_expires_at', '>', Carbon::now())
             ->first();

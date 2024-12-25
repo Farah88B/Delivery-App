@@ -92,11 +92,11 @@ class UserController extends Controller
 
         // التحقق من البيانات المُرسلة
         $validated = $request->validate([
-            'first_name' => 'nullable|string|max:255',
-            'last_name' => 'nullable|string|max:255',
-            'location' => 'nullable|string|max:255',
-            'mobile' => 'nullable|string|max:255',
-            'profile_image' => 'nullable|image|max:2048', // صورة بحد أقصى 2 ميغابايت
+            'first_name' => 'sometimes|string|max:255',
+            'last_name' => 'sometimes|string|max:255',
+            'location' => 'sometimes|string|max:255',
+            'mobile' => 'sometimes|string|max:255',
+            'profile_image' => 'sometimes|image|max:2048', // صورة بحد أقصى 2 ميغابايت
         ]);
 
         // تحديث الصورة إن وُجدت
@@ -155,7 +155,13 @@ class UserController extends Controller
         return response()->json(['message' => 'Password updated successfully']);
     }
 
+    public function logout(Request $request){
+        $request->user()->currentAccessToken()->delete();
+        return response()->json([
+            'message'=>'Logout Successfully'
 
+        ]);
+    }
 
 
 

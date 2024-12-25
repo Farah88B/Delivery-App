@@ -9,15 +9,17 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 class Restaurant extends Model
 {
     use HasFactory;
-    protected $fillable = ['name'];
+    protected $fillable = ['name_ar','name_en','description_ar','description_en'];
 
     public function categories()
     {
-        return $this->belongsToMany(Category::class, 'category_restaurant', 'restaurant_id', 'category_id');
+        return $this->belongsToMany(Category::class, 'restaurant_category', 'restaurant_id', 'category_id')
+            ->withTimestamps();
     }
     public function foods() : BelongsToMany
     {
-       return $this->belongsToMany(Food::class, 'restaurant_food', 'restaurant_id', 'food_id');
+       return $this->belongsToMany(Food::class, 'restaurant_food', 'restaurant_id', 'food_id')
+           ->withTimestamps()->withPivot('description_en','description_ar','price','quantity','image');
     }
 
 

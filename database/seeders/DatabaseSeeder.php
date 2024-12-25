@@ -15,7 +15,10 @@ class DatabaseSeeder extends Seeder
         $this->call([
             CategorySeeder::class,
             RestaurantSeeder::class,
-            CategoryRestaurantSeeder::class,
+            RestaurantCategorySeeder::class,
+            FoodsSeeder::class,
+            RestaurantFoodSeeder::class,
+            //UserSeeder::class,
         ]);
         // \App\Models\User::factory(10)->create();
 
