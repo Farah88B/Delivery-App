@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 class Restaurant extends Model
 {
     use HasFactory;
-    protected $fillable = ['name_ar','name_en','description_ar','description_en'];
+    protected $fillable = ['name_ar','name_en','logoImage','image'];
 
     public function categories()
     {

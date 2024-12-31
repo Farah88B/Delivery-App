@@ -15,14 +15,9 @@ return new class extends Migration
             $table->id();
             $table->string('name_ar');
             $table->string('name_en');
-            $table->string('description_ar')->nullable();
-            $table->string('description_en')->nullable();
             $table->string('address_ar')->nullable();
             $table->string('address_en')->nullable();
-            $table->string('phone');
-            $table->string('email');
-            $table->string('open_time')->nullable();
-            $table->string('close_time')->nullable();
+            $table->string('logoImage')->nullable();
             $table->string('image')->nullable();
             $table->timestamps();
         });

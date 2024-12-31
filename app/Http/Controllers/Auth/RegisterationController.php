@@ -11,6 +11,7 @@ use Illuminate\Validation\ValidationException;
 
 class RegisterationController extends Controller
 {
+
     public function register(Request $request)
     {
         try {
@@ -36,17 +37,15 @@ class RegisterationController extends Controller
             $success['mobile'] = $user->mobile;
 
             return response()->json([
-                'Data' => $success,
                 'message' => 'User registered successfully',
+                'data' => $success,
             ], 200);
         } catch (ValidationException $e) {
             // إرجاع رسالة الخطأ الأولى
             $message = $e->validator->errors()->first();
-
             return response()->json([
                 'message' => $message,
             ], 422);
         }
     }
-
 }

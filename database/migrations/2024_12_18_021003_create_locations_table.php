@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('latitude'); // خط العرض
             $table->string('longitude'); // خط الطول
-            $table->string('address'); // العنوان
+         //   $table->string('address'); // العنوان
             $table->foreignId('user_id')->constrained('users')->onDeleteCascade();
             $table->timestamps();
         });

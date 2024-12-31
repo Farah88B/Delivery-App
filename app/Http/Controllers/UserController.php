@@ -97,6 +97,8 @@ class UserController extends Controller
             'location' => 'sometimes|string|max:255',
             'mobile' => 'sometimes|string|max:255',
             'profile_image' => 'sometimes|image|max:2048', // صورة بحد أقصى 2 ميغابايت
+            'latitude' => 'sometimes|numeric',
+            'longitude' => 'sometimes|numeric',
         ]);
 
         // تحديث الصورة إن وُجدت
@@ -108,52 +110,32 @@ class UserController extends Controller
 
             // تخزين الصورة الجديدة
             $path = $request->file('profile_image')->store('profile_images', 'public');
-            $user->profile_image = $path;
+            $validated['profile_image'] = $path;
         }
 
-        // تحديث البيانات الشخصية
-        $user->first_name = $validated['first_name'] ?? $user->first_name;
-        $user->last_name = $validated['last_name'] ?? $user->last_name;
-        $user->mobile = $validated['mobile'] ?? $user->mobile;
-        $user->save();
+        // تحديث البيانات الشخصية باستخدام update()
+        $user->update(array_filter([
+            'first_name' => $validated['first_name'] ?? null,
+            'last_name' => $validated['last_name'] ?? null,
+            'mobile' => $validated['mobile'] ?? null,
+            'profile_image' => $validated['profile_image'] ?? null,
+        ]));
+
         // إضافة الموقع الجديد إذا تم إرساله
         if ($request->has(['latitude', 'longitude'])) {
-           $location= Location::create([
+            Location::create([
                 'user_id' => $user->id,
-                'name' => $validated['location_name'] ?? 'New Location',
                 'latitude' => $validated['latitude'],
                 'longitude' => $validated['longitude'],
             ]);
         }
+
         return response()->json([
             'message' => 'Profile updated successfully',
-            'user' => $user,
-
-        ]);
+            'data' => $user,
+        ], 200);
     }
 
-    public function changePassword(Request $request)
-    {
-        // الحصول على المستخدم الحالي
-        $user = Auth::user();
-
-        // التحقق من المدخلات
-        $validated = $request->validate([
-            'current_password' => 'required|string',
-            'new_password' => 'required|string|min:6|confirmed',
-        ]);
-
-        // التحقق من صحة كلمة المرور الحالية
-        if (!Hash::check($validated['current_password'], $user->password)) {
-            return response()->json(['error' => 'Current password is incorrect'], 400);
-        }
-
-        // تحديث كلمة المرور الجديدة
-        $user->password = Hash::make($validated['new_password']);
-        $user->save();
-
-        return response()->json(['message' => 'Password updated successfully']);
-    }
 
     public function logout(Request $request){
         $request->user()->currentAccessToken()->delete();

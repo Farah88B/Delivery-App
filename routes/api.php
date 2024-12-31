@@ -24,19 +24,21 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
+
 Route::post('register',[RegisterationController::class,'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/verify-otp', [AuthController::class, 'verifyOTP']);
 
 Route::middleware(['auth:sanctum','checkLanguage'])->group(function () {
     Route::get('/profile', [UserController::class, 'showProfile']);
-    Route::post('/profile/update', [UserController::class, 'updateProfile']);
+    Route::put('/profile/update', [UserController::class, 'updateProfile']);
 
 Route::prefix('/password')->group(function () {
     Route::post('/forgot', [AuthController::class, 'sendResetCode']);
     Route::post('/verify', [AuthController::class, 'verifyResetCode']);
     Route::post('/reset', [AuthController::class, 'resetPassword']);
 });
+Route::put('/changeLanguage', [AuthController::class, 'changeLanguage']);
 
 Route::prefix('category')->group(function () {
     Route::get('/all',[CategoryController::class,'getAllCategories']);
@@ -49,7 +51,7 @@ Route::prefix('restaurant')->group(function () {
     Route::get('/{restaurantId}/foods',[RestaurantController::class,'getRestaurantFoods']);
 });
 Route::prefix('/foods')->group(function () {
-    Route::get('/all',[FoodController::class,'getAllFoods']);
+    Route::get('/all',[FoodController::class,'getCategoriesWithFoods']);
     Route::get('/{foodId}',[FoodController::class,'getFoodById']);
     Route::get('/{foodId}/restaurants',[FoodController::class,'getFoodRestaurants']);
 

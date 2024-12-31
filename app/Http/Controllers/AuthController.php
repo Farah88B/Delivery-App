@@ -12,6 +12,7 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
+
     public function login(Request $request)
     {
         try {
@@ -177,5 +178,37 @@ class AuthController extends Controller
 
         return response()->json(['message' => 'Password reset successfully']);
     }
+    public function changeLanguage(Request $request)
+    {
+        // التحقق من صحة المدخلات
+        $validated = $request->validate([
+            'preferred_language' => 'required|in:ar,en',
+        ]);
+
+        // التحقق من تسجيل دخول المستخدم
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json([
+                'message' => 'User not authenticated'
+            ], 401);
+        }
+
+        // تحديث لغة المستخدم
+        $updated = $user->update([
+            'preferred_language' => $request['preferred_language'],
+        ]);
+
+        // التحقق من نجاح التحديث
+        if ($updated) {
+            return response()->json([
+                'message' => 'Language changed successfully'
+            ]);
+        } else {
+            return response()->json([
+                'message' => 'Failed to change language'
+            ], 500);
+        }
+    }
+
 }
 

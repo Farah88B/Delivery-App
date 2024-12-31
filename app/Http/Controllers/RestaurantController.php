@@ -12,11 +12,12 @@ class RestaurantController extends Controller
     public function getAllRestaurants()
     {
         $locale = app()->getLocale();
-        // جلب جميع المطاعم مع الفئات المرتبطة (اختياري)
+        // جلب جميع المطاعم
         $restaurants = Restaurant::select(
             'id',
             "name_{$locale} as name",
-            "description_{$locale} as description",
+            "address_{$locale} as address",
+            'logoImage',
             'image'
         )->get();
 
@@ -32,13 +33,9 @@ class RestaurantController extends Controller
         $restaurant = Restaurant::select(
             'id',
             "name_{$locale} as name",
-            "description_{$locale} as description",
-            'image',
             "address_{$locale} as address",
-            'phone',
-            'email',
-            'open_time',
-            'close_time'
+            'logoImage',
+            'image'
         )->find($id);
         return response()->json([
             'message' => 'Restaurant fetched successfully',
@@ -71,10 +68,10 @@ class RestaurantController extends Controller
         // إعادة الفئات المرتبطة بالمطعم
         return response()->json([
             'message' => 'Restaurant categories fetched successfully',
-            'data' =>
-                $restaurant->categories,  // إرجاع الفئات المرتبطة
+            'data' => $restaurant->categories,  // إرجاع الفئات المرتبطة
         ], 200);
     }
+
     // دالة لجلب الأطعمة المرتبطة بمطعم معين
     public function getRestaurantFoods($restaurantId)
     {
@@ -87,6 +84,7 @@ class RestaurantController extends Controller
             $query->select(
                 'foods.id', // id من جدول foods
                 "foods.name_{$locale} as name",  // حقل الاسم بناءً على اللغة
+                'foods.category_foods_id', // حقل الفئة
                 "restaurant_food.description_{$locale} as description",  // حقل الوصف بناءً على اللغة
                 'restaurant_food.price', // السعر من جدول الكسر
                 'restaurant_food.image', // الصورة من جدول الكسر

@@ -21,7 +21,7 @@ return new class extends Migration
             $table->string('otp')->nullable();
             $table->timestamp('otp_expires_at')->nullable(); // تاريخ انتهاء الرمز
             $table->string('profile_image')->nullable();
-            $table->string('preferred_language');
+            $table->string('preferred_language')->default('en');
             $table->string('reset_code')->nullable(); // رمز التحقق
             $table->timestamp('reset_code_expires_at')->nullable(); // تاريخ انتهاء الرمز
             $table->rememberToken();
