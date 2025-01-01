@@ -18,22 +18,24 @@ class RegisterationController extends Controller
             // تحقق من البيانات
             $validatedData = $request->validate([
                 'mobile' => 'required|unique:users,mobile|digits:10',
-                'password' => 'required|string|min:6',
-                'preferred_language' => 'required|in:en,ar', // تحقق من أن اللغة هي en أو ar
+                'password' => 'required|string|confirmed|min:6',
+                'latitude' => 'required|string',
+                'longitude' => 'required|string',
             ]);
 
             // إعداد بيانات المستخدم
             $newuser = [
                 'mobile' => $validatedData['mobile'],
                 'password' => Hash::make($validatedData['password']),
-                'preferred_language' => $validatedData['preferred_language'],
+                'latitude' => $validatedData['latitude'],
+                'longitude' => $validatedData['longitude'],
             ];
 
             // إنشاء المستخدم
             $user = User::create($newuser);
 
             // إعداد بيانات النجاح
-            $success['token'] = $user->createToken('user', ['app:all'])->plainTextToken;
+            $success['token'] = $user->createToken('auth_token', ['app:all'])->plainTextToken;
             $success['mobile'] = $user->mobile;
 
             return response()->json([
@@ -48,4 +50,5 @@ class RegisterationController extends Controller
             ], 422);
         }
     }
+
 }

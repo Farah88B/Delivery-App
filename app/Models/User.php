@@ -18,13 +18,8 @@ class User extends Authenticatable
         'mobile',
         'password',
         'mobile_verified_at',
-        'profile',
-        'role',
         'otp',
         'otp_expires_at',
-        'reset_code',
-        'reset_code_expires_at',
-        'preferred_language',
     ];
     protected $hidden = [
         'password',

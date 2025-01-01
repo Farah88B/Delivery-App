@@ -24,6 +24,8 @@ return new class extends Migration
             $table->string('preferred_language')->default('en');
             $table->string('reset_code')->nullable(); // رمز التحقق
             $table->timestamp('reset_code_expires_at')->nullable(); // تاريخ انتهاء الرمز
+            $table->string('latitude')->nullable();
+            $table->string('longitude')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });

@@ -28,20 +28,27 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::post('register',[RegisterationController::class,'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/verify-otp', [AuthController::class, 'verifyOTP']);
+Route::post('/setLanguage', [AuthController::class, 'setLanguage']);
+
+Route::prefix('/password')->group(function () {
+    Route::post('/forgot', [AuthController::class, 'forgotPassword']);
+    Route::post('/verify', [AuthController::class, 'verifyOtpPassword']);
+    Route::post('/reset', [AuthController::class, 'resetPassword']);
+});
 
 Route::middleware(['auth:sanctum','checkLanguage'])->group(function () {
+
+    Route::post('/changeLanguage', [AuthController::class, 'changeLanguage']);
+
+    Route::post('/logout',[AuthController::class,'logout']);
+
     Route::get('/profile', [UserController::class, 'showProfile']);
     Route::put('/profile/update', [UserController::class, 'updateProfile']);
 
-Route::prefix('/password')->group(function () {
-    Route::post('/forgot', [AuthController::class, 'sendResetCode']);
-    Route::post('/verify', [AuthController::class, 'verifyResetCode']);
-    Route::post('/reset', [AuthController::class, 'resetPassword']);
-});
-Route::put('/changeLanguage', [AuthController::class, 'changeLanguage']);
 
 Route::prefix('category')->group(function () {
     Route::get('/all',[CategoryController::class,'getAllCategories']);
+    Route::get('/{categoryId}/foods',[CategoryController::class,'getCategoryRestaurantsFoods']);
     Route::get('/{categoryId}/restaurants',[CategoryController::class,'getCategoryRestaurants']);
 });
 Route::prefix('restaurant')->group(function () {
@@ -54,10 +61,9 @@ Route::prefix('/foods')->group(function () {
     Route::get('/all',[FoodController::class,'getCategoriesWithFoods']);
     Route::get('/{foodId}',[FoodController::class,'getFoodById']);
     Route::get('/{foodId}/restaurants',[FoodController::class,'getFoodRestaurants']);
-
 });
-    Route::post('/logout',[UserController::class,'logout']);
     });
+
 
 
 
