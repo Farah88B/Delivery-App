@@ -17,7 +17,10 @@ class User extends Authenticatable
         'last_name',
         'mobile',
         'password',
-        'mobile_verified_at',
+        'profile_image',
+        'latitude',
+        'longitude',
+        'preferred_language',
         'otp',
         'otp_expires_at',
     ];

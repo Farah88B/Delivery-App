@@ -15,18 +15,42 @@ class ChangeLanguage
      *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
-    public function handle(Request $request, Closure $next): Response
-    {
+//    public function handle(Request $request, Closure $next): Response
+//    {
 //        app()->setLocale('en');
 //        if(isset($request->lang) && $request->lang == 'ar'){
 //            app()->setLocale('ar');
 //        }
-        // تحقق من أن المستخدم مسجل دخوله
+//        // تحقق من أن المستخدم مسجل دخوله
+//        if (Auth::check()) {
+////            // تعيين اللغة بناءً على preferred_language للمستخدم
+//            $locale = Auth::user()->preferred_language;
+//           App::setLocale($locale);
+//        }
+//        return $next($request);
+//    }
+
+// app/Http/Middleware/SetLanguage.php
+
+    public function handle(Request $request, Closure $next): Response
+    {
+        // تحقق إذا كان المستخدم مسجلاً دخوله
         if (Auth::check()) {
-            // تعيين اللغة بناءً على preferred_language للمستخدم
+            // تعيين اللغة بناءً على اللغة المفضلة للمستخدم المخزنة في قاعدة البيانات
             $locale = Auth::user()->preferred_language;
-            App::setLocale($locale);
+            // تعيين اللغة في التطبيق بناءً على اللغة المفضلة
+            app()->setLocale($locale);
+        } else {
+            // تعيين اللغة افتراضيًا إلى الإنجليزية إذا كان المستخدم غير مسجل دخوله
+            app()->setLocale('en');
         }
+
         return $next($request);
     }
+
+
+
+
+
+
 }

@@ -13,44 +13,103 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
+//    public function login(Request $request)
+//{
+//    try {
+//        $request->validate([
+//            'mobile' => 'required|numeric|digits:10',
+//            'password' => 'required|string|min:6',
+//        ]);
+//
+//        // البحث عن المستخدم
+//        $user = User::where('mobile', $request['mobile'])->first();
+//        $request['password'] = Hash::make($request['password']);
+//
+//
+//            if (!$user ) {
+//                return response()->json(['message' => 'Invalid  Mobile'], 401);
+//            }
+//                $credentials = $request->only('mobile', 'password');
+//
+//                if (Auth::attempt($credentials)) {
+//                    // الحصول على المستخدم
+//                    $user = Auth::user();
+//
+//                    // تعيين اللغة بناءً على اللغة المفضلة للمستخدم
+//                    app()->setLocale($user->preferred_language);
+//        }
+//        // توليد OTP وإرساله
+//        $otp = rand(100000, 999999);
+//        $user->update([
+//            'otp' => $otp,
+//        ]);
+//    return response()->json([
+//        'message' => 'OTP sent to you',
+//        'data' => "otp = $otp"
+//    ],200);
+//    }catch (ValidationException $e) {
+//        return response()->json([
+//            'message' => $e->getMessage(),
+//        ]);
+//}
+//}
+
     public function login(Request $request)
-{
-    try {
-        $request->validate([
-            'mobile' => 'required|numeric|digits:10',
-            'password' => 'required|string|min:6',
-        ]);
+    {
+        try {
+            // التحقق من صحة المدخلات
+            $request->validate([
+                'mobile' => 'required|numeric|digits:10',
+                'password' => 'required|string|min:6',
+            ]);
 
-        // البحث عن المستخدم
-        $user = User::where('mobile', $request['mobile'])->first();
-        $request['password'] = Hash::make($request['password']);
+            // البحث عن المستخدم باستخدام رقم الجوال
+            $user = User::where('mobile', $request['mobile'])->first();
 
-        if (!$request['password'] = $user->password) {
+            // التحقق من وجود المستخدم
+            if (!$user) {
+                return response()->json(['message' => 'Invalid Mobile'], 401);
+            }
+
+            // التحقق من صحة كلمة المرور
+            $credentials = $request->only('mobile', 'password');
+
+            // التحقق من التوثيق باستخدام بيانات الاعتماد
+            if (Auth::attempt($credentials)) {
+                // الحصول على المستخدم الحالي
+                $user = Auth::user();
+
+                // تعيين اللغة بناءً على اللغة المفضلة للمستخدم
+                app()->setLocale($user->preferred_language);
+
+                // توليد OTP وإرساله
+                $otp = rand(100000, 999999);
+                $user->update([
+                    'otp' => $otp,
+                ]);
+
+                return response()->json([
+                    'message' => 'OTP sent to you',
+                    'data' => "otp = $otp"
+                ], 200);
+            }
+
+            // إذا كانت بيانات الاعتماد غير صحيحة
+            return response()->json(['message' => 'Invalid credentials'], 401);
+
+        } catch (ValidationException $e) {
+            // معالجة استثناءات التحقق من الصحة
             return response()->json([
-                'message' => 'Password mismatch',
-                'stored_password' => $user->password,
-                'entered_password' => $request['password']
-            ], 401);
+                'message' => 'Validation error: ' . $e->getMessage(),
+            ], 422); // رمز الاستجابة المناسب لأخطاء التحقق من الصحة
+        } catch (\Exception $e) {
+            // التعامل مع أي استثناءات أخرى
+            return response()->json([
+                'message' => 'An error occurred: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
 
-        }
-            if (!$user ) {
-            return response()->json(['message' => 'Invalid  Mobile'], 401);
-        }
-        // توليد OTP وإرساله
-        $otp = rand(100000, 999999);
-        $user->update([
-            'otp' => $otp,
-        ]);
-    return response()->json([
-        'message' => 'OTP sent to you',
-        'data' => "otp = $otp"
-    ],200);
-    }catch (ValidationException $e) {
-        return response()->json([
-            'message' => $e->getMessage(),
-        ]);
-}
-}
 
     public function verifyOTP(Request $request){
 
@@ -109,17 +168,44 @@ class AuthController extends Controller
             'otp' => $otp, // احذف هذا السطر في بيئة الإنتاج
         ]);
     }
-    public function verifyOtpPassword(Request $request)
+//    public function verifyOtpPassword(Request $request)
+//    {
+//        $request->validate([
+//            'mobile' => 'required|numeric|digits:10',
+//            'otp' => 'required|digits:6',
+//        ]);
+//
+//        // البحث عن المستخدم بناءً على رقم الجوال و OTP
+//        $user = User::where('mobile', $request->mobile)
+//            ->where('otp', $request->otp)
+//            ->where('otp_expires_at', '>', now())
+//            ->first();
+//
+//        if (!$user) {
+//            return response()->json([
+//                'message' => 'Invalid OTP or mobile number, or OTP expired.',
+//            ], 401);
+//        }
+//
+//        // إزالة OTP بعد التحقق
+//        $user->update(['otp' => null]);
+//
+//        return response()->json([
+//            'message' => 'OTP verified successfully. You can now reset your password.',
+//        ], 200);
+//    }
+    public function resetPassword(Request $request)
     {
         $request->validate([
             'mobile' => 'required|numeric|digits:10',
             'otp' => 'required|digits:6',
+            'password' => 'required|string|min:6',
         ]);
 
-        // البحث عن المستخدم بناءً على رقم الجوال و OTP
+        // البحث عن المستخدم بناءً على رقم الجوال
         $user = User::where('mobile', $request->mobile)
-            ->where('otp', $request->otp)
-            ->where('otp_expires_at', '>', now())
+          ->where('otp', $request->otp)
+           ->where('otp_expires_at', '>', now())
             ->first();
 
         if (!$user) {
@@ -128,32 +214,10 @@ class AuthController extends Controller
             ], 401);
         }
 
-        // إزالة OTP بعد التحقق
-        $user->update(['otp' => null]);
-
-        return response()->json([
-            'message' => 'OTP verified successfully. You can now reset your password.',
-        ], 200);
-    }
-    public function resetPassword(Request $request)
-    {
-        $request->validate([
-            'mobile' => 'required|numeric|digits:10',
-            'password' => 'required|string|min:6',
-        ]);
-
-        // البحث عن المستخدم بناءً على رقم الجوال
-        $user = User::where('mobile', $request->mobile)->first();
-
-        if (!$user) {
-            return response()->json([
-                'message' => 'Invalid mobile number.',
-            ], 401);
-        }
-
         // تحديث كلمة المرور
         $user->update([
             'password' => Hash::make($request->password), // تشفير كلمة المرور
+            'otp' => null
         ]);
 
         return response()->json([
@@ -161,39 +225,107 @@ class AuthController extends Controller
         ], 200);
     }
 
-public function setLanguage(Request $request)
-{
-    $validated = $request->validate([
-        'mobile' => 'required|numeric|digits:10',
-        'preferred_language' => 'sometimes|in:ar,en',
-    ]);
-    // البحث عن المستخدم بناءً على رقم الجوال
-    $user = User::where('mobile', $validated['mobile'])->first();
-    if (!$user) {
-        return response()->json(['message' => 'Invalid mobile number'], 401);
-    }
-    // التحقق من أن اللغة المفضلة موجودة ولها قيمة صحيحة (en أو ar)
-    $preferredLanguage = $user->preferred_language;
+    public function setLanguage2(Request $request)
+    {
+        $validated = $request->validate([
+            'preferred_language' => 'nullable|string', // فقط تحقق أنها نصية ومقبولة كحقل
+        ]);
 
-    // تعيين اللغة الافتراضية إذا لم تكن هناك لغة مفضلة أو كانت غير صالحة
-    if (in_array($preferredLanguage, ['en', 'ar'])) {
-        App::setLocale($preferredLanguage);  // تعيين اللغة بناءً على تفضيل المستخدم
-    } else {
-        App::setLocale('en');  // تعيين اللغة الافتراضية (الإنجليزية) إذا كانت اللغة المفضلة غير صالحة
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthorised'], 401);
+        }
+
+        // الحصول على اللغة المفضلة
+        $preferredLanguage = $validated['preferred_language'] ?? 'en'; // اللغة الافتراضية هي الإنجليزية
+
+        // التحقق إذا كانت اللغة المدخلة غير مدعومة
+        if (!in_array($preferredLanguage, ['ar', 'en'])) {
+            return response()->json([
+                'message' => 'Invalid preferred language. Supported languages are "ar" and "en".',
+            ], 422); // استجابة HTTP للحالات غير الصالحة
+        }
+
+        // تعيين اللغة بناءً على التفضيل
+        App::setLocale($preferredLanguage);
+
+        return response()->json([
+            'message' => 'Language set successfully',
+            'preferred_language' => $preferredLanguage,
+        ], 200);
+    }
+    public function setLanguage(Request $request)
+    {
+        // التحقق من المدخلات
+        $validated = $request->validate([
+            'preferred_language' => 'required|string|in:en,ar', // تحديد أن اللغة يجب أن تكون واحدة من 'en' أو 'ar'
+        ]);
+
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthorised'], 401);
+        }
+
+        // تعيين اللغة المفضلة للمستخدم
+        $preferredLanguage = $validated['preferred_language'];
+
+        // تحديث اللغة المفضلة للمستخدم في قاعدة البيانات
+        $user->update([
+            'preferred_language' => $preferredLanguage,
+        ]);
+
+        // تعيين اللغة في التطبيق بناءً على اللغة المفضلة
+        app()->setLocale($preferredLanguage);
+
+        return response()->json([
+            'message' => 'Language set successfully',
+            'preferred_language' => $preferredLanguage,
+        ], 200);
     }
 
-    return response()->json([
-        'message' => 'Language set successfully',
-        'preferred_language' => App::getLocale(),
-    ], 200);
-}
+
 
 
     public function changeLanguage(Request $request)
     {
+        // التحقق من المدخلات
+        $validated = $request->validate([
+            'preferred_language' => 'required|string|in:en,ar', // تحديد أن اللغة يجب أن تكون واحدة من 'en' أو 'ar'
+        ]);
+
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthorised'], 401);
+        }
+
+        // تعيين اللغة المفضلة للمستخدم
+        $preferredLanguage = $validated['preferred_language'];
+
+        // تحديث اللغة المفضلة للمستخدم في قاعدة البيانات
+        $user->update([
+            'preferred_language' => $preferredLanguage,
+        ]);
+
+        // تعيين اللغة في التطبيق بناءً على اللغة المفضلة
+        app()->setLocale($preferredLanguage);
+
+        return response()->json([
+            'message' => 'Language changed successfully',
+            'preferred_language' => $preferredLanguage,
+        ], 200);
+    }
+
+
+
+
+
+
+
+    public function changeLanguage2(Request $request)
+    {
         // التحقق من صحة المدخلات
         $validated = $request->validate([
-            'preferred_language' => 'sometimes|in:ar,en',
+            'preferred_language' => 'nullable|string', // السماح بالقيمة النصية فقط
         ]);
 
         // البحث عن المستخدم بناءً على رقم الجوال
@@ -205,16 +337,26 @@ public function setLanguage(Request $request)
             ], 401);
         }
 
+        // الحصول على اللغة المفضلة
+        $preferredLanguage = $validated['preferred_language'] ?? null;
+
+        // التحقق من أن اللغة المدخلة ضمن اللغات المدعومة
+        if (!in_array($preferredLanguage, ['ar', 'en'])) {
+            return response()->json([
+                'message' => 'Invalid preferred language. Supported languages are "ar" and "en".',
+            ], 422); // استجابة HTTP للحالات غير الصالحة
+        }
+
         // تحديث لغة المستخدم
         $updated = $user->update([
-            'preferred_language' => $validated['preferred_language'],
+            'preferred_language' => $preferredLanguage,
         ]);
 
         // التحقق من نجاح التحديث
         if ($updated) {
             return response()->json([
                 'message' => 'Language changed successfully',
-                'data'=>$updated
+                'preferred_language' => $preferredLanguage
             ]);
         } else {
             return response()->json([
@@ -222,6 +364,7 @@ public function setLanguage(Request $request)
             ], 500);
         }
     }
+
 
     public function logout(Request $request){
         if ($request->user()) {

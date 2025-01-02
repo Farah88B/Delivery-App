@@ -70,17 +70,18 @@ class RestaurantCategorySeeder extends Seeder
             ['restaurant_id' => $restaurant13->id, 'category_id' => $categoryFineDining->id],
             ['restaurant_id' => $restaurant14->id, 'category_id' => $categoryFineDining->id],
             ['restaurant_id' => $restaurant15->id, 'category_id' => $categoryFineDining->id],
+
             ['restaurant_id' => $restaurant16->id, 'category_id' => $categoryEasternFood->id],
             ['restaurant_id' => $restaurant17->id, 'category_id' => $categoryEasternFood->id],
             ['restaurant_id' => $restaurant18->id, 'category_id' => $categoryEasternFood->id],
             //////////
             ['restaurant_id' => $restaurant19->id, 'category_id' => $categoryBakery->id],
-            ['restaurant_id' => $restaurant20->id, 'category_id' => $categoryBakery->id],            ['restaurant_id' => $restaurant16->id, 'category_id' => $categoryEasternFood->id],
+            ['restaurant_id' => $restaurant20->id, 'category_id' => $categoryBakery->id],
             ['restaurant_id' => $restaurant21->id, 'category_id' => $categoryBakery->id],
             ['restaurant_id' => $restaurant22->id, 'category_id' => $categoryBakery->id],
             ['restaurant_id' => $restaurant23->id, 'category_id' => $categoryBakery->id],
             ///////
-            ['restaurant_id' => $restaurant24->id, 'category_id' => $categoryHealthyFood->id],            ['restaurant_id' => $restaurant16->id, 'category_id' => $categoryEasternFood->id],
+            ['restaurant_id' => $restaurant24->id, 'category_id' => $categoryHealthyFood->id],
             ['restaurant_id' => $restaurant25->id, 'category_id' => $categoryHealthyFood->id],
             ['restaurant_id' => $restaurant26->id, 'category_id' => $categoryHealthyFood->id],
             ['restaurant_id' => $restaurant27->id, 'category_id' => $categoryHealthyFood->id],

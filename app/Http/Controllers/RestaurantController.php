@@ -73,7 +73,7 @@ class RestaurantController extends Controller
     }
 
     // دالة لجلب الأطعمة المرتبطة بمطعم معين
-    public function getRestaurantFoods($restaurantId)
+    public function getRestaurantFoods2($restaurantId)
     {
         // الحصول على اللغة المفضلة للمستخدم
         $locale = app()->getLocale(); // 'en' أو 'ar'
@@ -104,6 +104,64 @@ class RestaurantController extends Controller
         return response()->json([
             'message' => 'Restaurant foods fetched successfully',
             'data' => $restaurant->foods,  // الأطعمة المرتبطة بالمطعم
+        ], 200);
+    }
+    public function getRestaurantFoods($restaurantId)
+    {
+        // الحصول على اللغة المفضلة للمستخدم
+        $locale = app()->getLocale(); // 'en' أو 'ar'
+
+        // جلب المطعم مع الأطعمة المرتبطة بناءً على اللغة
+        $restaurant = Restaurant::with(['foods' => function ($query) use ($locale) {
+            $query->select(
+                'foods.id', // معرف الطعام
+                "foods.name_{$locale} as name", // اسم الطعام بناءً على اللغة
+                'foods.category_foods_id', // معرف الفئة المرتبطة
+                "restaurant_food.description_{$locale} as description", // الوصف بناءً على اللغة
+                'restaurant_food.price', // السعر
+                'restaurant_food.image', // الصورة
+                'restaurant_food.quantity' // الكمية
+            )
+                ->withPivot('price', 'quantity', 'image', "description_{$locale}"); // الحقول الإضافية من جدول الكسر
+        }, 'foods.category' => function ($query) use ($locale) {
+            $query->select(
+                'category_foods.id', // معرف الفئة
+                "category_foods.name_{$locale} as name" // اسم الفئة بناءً على اللغة
+            );
+        }])->find($restaurantId);
+
+        // التحقق من وجود المطعم
+        if (!$restaurant) {
+            return response()->json([
+                'message' => 'Restaurant not found'
+            ], 404);
+        }
+
+        // إعادة ترتيب البيانات بحيث يتم تضمين الفئات مع الأطعمة
+        $foodsGroupedByCategory = $restaurant->foods->groupBy('category_foods_id')->map(function ($foods, $categoryId) {
+            $category = $foods->first()->category; // الحصول على بيانات الفئة
+            return [
+                'category' => [
+                    'id' => $category->id,
+                    'name' => $category->name,
+                ],
+                'foods' => $foods->map(function ($food) {
+                    return [
+                        'id' => $food->id,
+                        'name' => $food->name,
+                        'description' => $food->pivot->description,
+                        'price' => $food->pivot->price,
+                        'quantity' => $food->pivot->quantity,
+                        'image' => $food->pivot->image,
+                    ];
+                })
+            ];
+        })->values(); // تحويل مجموعة البيانات إلى قائمة
+
+        // إرجاع الأطعمة المرتبطة بالمطعم مع الفئات
+        return response()->json([
+            'message' => 'Restaurant foods fetched successfully',
+            'data' => $foodsGroupedByCategory,
         ], 200);
     }
 
