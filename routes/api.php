@@ -3,8 +3,11 @@
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterationController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CartController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\FavoriteFoodController;
 use App\Http\Controllers\FoodController;
+use App\Http\Controllers\OrderController;
 use App\Http\Controllers\RestaurantController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
@@ -64,6 +67,23 @@ Route::prefix('/foods')->group(function () {
     Route::get('/{foodId}',[FoodController::class,'getFoodById']);
     Route::get('/{foodId}/restaurants',[FoodController::class,'getFoodRestaurants']);
 });
+    Route::prefix('/favorites')->group(function () {
+        Route::get('/get', [FavoriteFoodController::class, 'getFavoriteFoods']);
+        Route::post('/add', [FavoriteFoodController::class, 'addToFavorites']);
+        Route::delete('/remove', [FavoriteFoodController::class, 'removeFromFavorites']);
+    });
+    Route::prefix('/cart')->group(function () {
+        Route::post('/addItem', [CartController::class, 'addToCart']);
+        Route::post('/removeItem', [CartController::class, 'removeFromCart']);
+        Route::delete('/cancelCart', [CartController::class, 'cancelCart']);
+        Route::get('/viewCart', [CartController::class, 'viewCartItems']);
+        Route::get('/viewCartBeforeConfirm', [CartController::class, 'viewCartBeforeConfirm']);
+    });
+    Route::prefix('/orders')->group(function () {
+        Route::post('/ConfirmOrder', [OrderController::class, 'ConfirmOrder']);
+        Route::get('/getAllOrders', [OrderController::class, 'getAllOrders']);
+        Route::get('/{orderId}/getOrderById', [OrderController::class, 'getOrderById']);
+    });
     });
 
 

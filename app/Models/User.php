@@ -37,4 +37,22 @@ class User extends Authenticatable
     {
        return $this->hasMany(Location::class);
     }
+    public function favoriteFoods()
+    {
+        return $this->hasMany(FavoriteFood::class);
+    }
+
+    public function favoriteRestaurantFoods()
+    {
+        return $this->belongsToMany(RestaurantFood::class,'favorite_foods', 'user_id', 'restaurant_food_id');
+    }
+    public function carts()
+    {
+        return $this->hasMany(Cart::class);
+    }
+
+    public function orders()
+    {
+        return $this->hasMany(Order::class);
+    }
 }
