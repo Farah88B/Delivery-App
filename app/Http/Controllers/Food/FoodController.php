@@ -1,10 +1,11 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Food;
 
-use App\Models\CategoryFoods;
-use App\Models\Food;
-use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+use App\Models\Category\CategoryFoods;
+use App\Models\Food\Food;
+use Illuminate\Support\Facades\Auth;
 
 class FoodController extends Controller
 {
@@ -62,6 +63,7 @@ class FoodController extends Controller
     public function getFoodById($foodId)
     {
         $locale = app()->getLocale(); // الحصول على اللغة الحالية ('en' أو 'ar')
+        $user = Auth::user();
 
         // جلب الطعام بناءً على المعرف مع العلاقات المطلوبة
         $food = Food::with([
@@ -91,6 +93,8 @@ class FoodController extends Controller
             ], 404);
         }
 
+        $isFavorite = $user->favoriteFoods()->where('food_id', $foodId)->exists();
+
         // إعداد البيانات للرد
         $responseData = [
             'category' => [
@@ -101,6 +105,7 @@ class FoodController extends Controller
                 'id' => $food->id,
                 'name' => $food->name,
                 'category_foods_id' => $food->category_foods_id,
+                'is_favorite' => $isFavorite,  // إرجاع حالة المفضلة
                 'restaurants' => $food->restaurants->map(function ($restaurant) use ($locale) {
                     return [
                         'id' => $restaurant->id,

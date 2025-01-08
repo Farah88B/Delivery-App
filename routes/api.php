@@ -1,15 +1,14 @@
 <?php
 
-use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\RegisterationController;
-use App\Http\Controllers\AuthController;
-use App\Http\Controllers\CartController;
-use App\Http\Controllers\CategoryController;
-use App\Http\Controllers\FavoriteFoodController;
-use App\Http\Controllers\FoodController;
-use App\Http\Controllers\OrderController;
-use App\Http\Controllers\RestaurantController;
-use App\Http\Controllers\UserController;
+use App\Http\Controllers\Auth\UserController;
+use App\Http\Controllers\Cart\CartController;
+use App\Http\Controllers\Categry\CategoryController;
+use App\Http\Controllers\Favorite\FavoriteFoodController;
+use App\Http\Controllers\Food\FoodController;
+use App\Http\Controllers\Order\OrderController;
+use App\Http\Controllers\Restaurant\RestaurantController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -68,7 +67,7 @@ Route::prefix('/foods')->group(function () {
     Route::get('/{foodId}/restaurants',[FoodController::class,'getFoodRestaurants']);
 });
     Route::prefix('/favorites')->group(function () {
-        Route::get('/get', [FavoriteFoodController::class, 'getFavoriteFoods']);
+        Route::get('/get', [FavoriteFoodController::class, 'listFavorites']);
         Route::post('/add', [FavoriteFoodController::class, 'addToFavorites']);
         Route::delete('/remove', [FavoriteFoodController::class, 'removeFromFavorites']);
     });

@@ -3,6 +3,10 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Models\Cart\Cart;
+use App\Models\Favorit\FavoriteFood;
+use App\Models\Order\Order;
+use App\Models\Restaurant\RestaurantFood;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -37,14 +41,20 @@ class User extends Authenticatable
     {
        return $this->hasMany(Location::class);
     }
-    public function favoriteFoods()
+    public function favoriteFoods2()
     {
         return $this->hasMany(FavoriteFood::class);
+    }
+    public function favoriteFoods()
+    {
+        return $this->belongsToMany(RestaurantFood::class, 'favorite_food', 'user_id', 'restaurant_food_id')
+            ->with(['food', 'restaurant']) // ربط البيانات لجلب المعلومات المطلوبة
+            ->withTimestamps();
     }
 
     public function favoriteRestaurantFoods()
     {
-        return $this->belongsToMany(RestaurantFood::class,'favorite_foods', 'user_id', 'restaurant_food_id');
+        return $this->belongsToMany(RestaurantFood::class,'favorite_food', 'user_id', 'restaurant_food_id');
     }
     public function carts()
     {

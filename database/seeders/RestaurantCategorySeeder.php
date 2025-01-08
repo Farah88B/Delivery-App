@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
+use App\Models\Category\Category;
+use App\Models\Restaurant\Restaurant;
 use Illuminate\Database\Seeder;
-use App\Models\Restaurant;
-use App\Models\Category;
 use Illuminate\Support\Facades\DB;
 
 class RestaurantCategorySeeder extends Seeder

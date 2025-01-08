@@ -1,7 +1,9 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Restaurant;
 
+use App\Models\Category\Category;
+use App\Models\Food\Food;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;

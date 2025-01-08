@@ -1,12 +1,9 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Categry;
 
-use App\Models\Category;
-use App\Models\Food;
-use App\Models\Restaurant;
-use Illuminate\Http\Request;
-use App\Http\Controllers\RestaurantController;
+use App\Http\Controllers\Controller;
+use App\Models\Category\Category;
 
 class CategoryController extends Controller
 {
