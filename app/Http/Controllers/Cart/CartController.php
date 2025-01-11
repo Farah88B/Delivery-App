@@ -11,25 +11,7 @@ use Illuminate\Support\Facades\Auth;
 
 class CartController extends Controller
 {
-//    public function addToCart(Request $request)
-//    {
-//        $user = Auth::user();
-//
-//        $request->validate([
-//            'restaurant_food_id' => 'required|exists:restaurant_food,id',
-//            'quantity' => 'required|integer|min:1',
-//        ]);
-//
-//        $restaurantFood = RestaurantFood::findOrFail($request->restaurant_food_id);
-//        $cart = Cart::firstOrCreate(['user_id' => $user->id]);
-//
-//        $cartItem = $cart->cartItems()->firstOrNew(['restaurant_food_id' => $restaurantFood->id]);
-//        $cartItem->quantity += $request->quantity;
-//        $cartItem->price = $restaurantFood->price;
-//        $cartItem->save();
-//
-//        return response()->json(['message' => __('messages.added_to_cart')], 200);
-//    }
+
     public function addToCart(Request $request)
     {
         $user = Auth::user();
@@ -172,5 +154,23 @@ class CartController extends Controller
 
         return response()->json(['message' => __('Cart has been successfully cancelled.')], 200);
     }
-
+//    public function addToCart(Request $request)
+//    {
+//        $user = Auth::user();
+//
+//        $request->validate([
+//            'restaurant_food_id' => 'required|exists:restaurant_food,id',
+//            'quantity' => 'required|integer|min:1',
+//        ]);
+//
+//        $restaurantFood = RestaurantFood::findOrFail($request->restaurant_food_id);
+//        $cart = Cart::firstOrCreate(['user_id' => $user->id]);
+//
+//        $cartItem = $cart->cartItems()->firstOrNew(['restaurant_food_id' => $restaurantFood->id]);
+//        $cartItem->quantity += $request->quantity;
+//        $cartItem->price = $restaurantFood->price;
+//        $cartItem->save();
+//
+//        return response()->json(['message' => __('messages.added_to_cart')], 200);
+//    }
 }

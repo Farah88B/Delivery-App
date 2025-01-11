@@ -28,8 +28,8 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 Route::post('register',[RegisterationController::class,'register']);
-Route::post('/login', [AuthController::class, 'login']);
-Route::post('/verify-otp', [AuthController::class, 'verifyOTP']);
+Route::post('/verify-otp', [RegisterationController::class, 'verifyOTP']);
+Route::post('/login', [AuthController::class, 'login3']);
 
 
 Route::prefix('/password')->group(function () {
@@ -82,6 +82,7 @@ Route::prefix('/foods')->group(function () {
         Route::post('/ConfirmOrder', [OrderController::class, 'ConfirmOrder']);
         Route::get('/getAllOrders', [OrderController::class, 'getAllOrders']);
         Route::get('/{orderId}/getOrderById', [OrderController::class, 'getOrderById']);
+        Route::delete('/{orderId}/deleteOrder', [OrderController::class, 'deleteOrder']);
     });
     });
 

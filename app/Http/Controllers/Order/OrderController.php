@@ -146,7 +146,7 @@ class OrderController extends Controller
             ->first();
 
         if (!$order) {
-            return response()->json(['message' => __('messages.order_not_found')], 404);
+            return response()->json(['message' => __('messages.order_not_found')], 200);
         }
 
         // تجهيز البيانات للعرض
@@ -173,5 +173,42 @@ class OrderController extends Controller
             'final_total' => $order->total_amount + $deliveryFee, // إجمالي المبلغ مع رسوم التوصيل
             'payment_method' => $order->payment_method, // طريقة الدفع
         ], 200);
+    }
+    public function deleteOrder($orderId)
+    {
+        // استخدام المعاملة لضمان سلامة البيانات
+        DB::beginTransaction();
+
+        try {
+            // جلب الطلب مع عناصر الطلب
+            $order = Order::with('orderItems.restaurantFood')->find($orderId);
+
+            if (!$order) {
+                return response()->json(['message' => 'الطلب غير موجود'], 404);
+            }
+
+            // استرجاع الكميات إلى المخزون
+            foreach ($order->orderItems as $orderItem) {
+                $restaurantFood = $orderItem->restaurantFood;
+
+                if ($restaurantFood) {
+                    // زيادة الكمية المخزنة
+                    $restaurantFood->increment('quantity', $orderItem->quantity);
+                }
+            }
+
+            // حذف عناصر الطلب
+            $order->orderItems()->delete();
+
+            // حذف الطلب نفسه
+            $order->delete();
+
+            DB::commit(); // تأكيد المعاملة
+            return response()->json(['message' => 'تم حذف الطلب بنجاح والكميات تمت إعادتها للمخزون'], 200);
+
+        } catch (\Exception $e) {
+            DB::rollBack(); // التراجع عن العمليات في حالة حدوث خطأ
+            return response()->json(['message' => 'حدث خطأ أثناء حذف الطلب', 'error' => $e->getMessage()], 500);
+        }
     }
 }

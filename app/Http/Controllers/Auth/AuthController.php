@@ -15,6 +15,29 @@ use Illuminate\Validation\ValidationException;
 class AuthController extends Controller
 {
 
+    public function login3(Request $request)
+    {
+        $request->validate([
+            'mobile' => 'required|numeric|digits:10',
+            'password' => 'required|string|min:6',
+        ]);
+        // البحث عن المستخدم
+        $user = User::where('mobile', $request['mobile'])->first();
+
+        if (!$user ) {
+            return response()->json(['message' => 'Invalid Mobile'], 401);
+        }else if( !Hash::check($request['password'], $user->password)){
+            return response()->json(['message' => 'Invalid Password'], 401);
+        }
+        // توليد API Token
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        return response()->json([
+            'message' => 'Login successful!',
+            'token' => $token
+        ]);
+    }
+
     public function login(Request $request)
     {
         try {
@@ -47,7 +70,7 @@ class AuthController extends Controller
             if ($sendStatus !== true) {
                 return response()->json([
                     'message' => 'Failed to send OTP.',
-                     'error' => $sendStatus
+                    // 'error' => $sendStatus
                 ], 500);
             }
 
@@ -55,6 +78,7 @@ class AuthController extends Controller
                 [
                     'message' => 'OTP sent successfully.',
                 ], 200);
+
 
         }catch (ValidationException $e){
             $message = $e->validator->errors()->first();
