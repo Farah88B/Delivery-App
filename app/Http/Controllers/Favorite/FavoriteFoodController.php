@@ -66,6 +66,7 @@ class FavoriteFoodController extends Controller
         // تنسيق الاستجابة
         $formattedFavorites = $favorites->map(function ($restaurantFood) use ($locale) {
             return [
+                'restaurant_food_id' => $restaurantFood->id, // إضافة restaurant_food_id
                 'food_name' => $restaurantFood->food->name ?? 'Unknown',
                 'food_image' => $restaurantFood->image ?? null,
                 'restaurant_name' => $restaurantFood->restaurant->name ?? 'Unknown',

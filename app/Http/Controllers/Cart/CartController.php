@@ -78,19 +78,21 @@ class CartController extends Controller
             ->first();
 
         if (!$cart || $cart->cartItems->isEmpty()) {
-            return response()->json(['message' => __('messages.cart_empty')], 404);
+            return response()->json(['message' => __('messages.cart_empty')], 200);
         }
 
-        // التحقق من البيانات داخل الكائنات:
+        // تنسيق بيانات السلة
         $cartDetails = $cart->cartItems->map(function ($item) {
-            // تصحيح: التحقق من القيم
+            // التحقق من القيم لضمان عدم وجود أخطاء
             $foodName = $item->restaurantFood->food ? $item->restaurantFood->food->name : 'Unknown';
             $restaurantName = $item->restaurantFood->restaurant ? $item->restaurantFood->restaurant->name : 'Unknown';
+            $foodImage = $item->restaurantFood->image ?? null; // جلب صورة الأكلة
 
             return [
                 'cart_item_id' => $item->id,
                 'restaurant_food_id' => $item->restaurant_food_id,
                 'food_name' => $foodName,
+                'food_image' => $foodImage, // إضافة صورة الأكلة
                 'restaurant_name' => $restaurantName,
                 'quantity' => $item->quantity,
                 'price_per_item' => $item->restaurantFood->price,

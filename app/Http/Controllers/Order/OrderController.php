@@ -9,6 +9,7 @@ use App\Models\Restaurant\RestaurantFood;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class OrderController extends Controller
 {
@@ -21,7 +22,6 @@ class OrderController extends Controller
             'payment_method' => 'required|string|in:cash,credit_card,paypal',  // تحديد طرق الدفع المتاحة
         ]);
 
-        // جلب السلة الخاصة بالمستخدم
         $cart = Cart::where('user_id', $user->id)->with('cartItems.restaurantFood.food')->first();
 
         if (!$cart || $cart->cartItems->isEmpty()) {
@@ -92,8 +92,7 @@ class OrderController extends Controller
         }
     }
 
-
-        public function getAllOrders()
+    public function getAllOrders()
     {
         $user = Auth::user();
 
@@ -101,7 +100,7 @@ class OrderController extends Controller
         $orders = Order::where('user_id', $user->id)->get(['id', 'created_at']);
 
         if ($orders->isEmpty()) {
-            return response()->json(['message' => __('messages.no_orders_found')], 404);
+            return response()->json(['message' => __('messages.no_orders_found')], 200);
         }
 
         // تجهيز البيانات للعرض مع تنسيق created_at إلى سلسلة نصية
@@ -118,6 +117,27 @@ class OrderController extends Controller
         ], 200);
     }
 
+    public function getOrderStatus($status)
+    {
+        $statusTranslations = [
+            'Under Preparation' => 'قيد التحضير',
+            'Under delivery' => 'قيد التوصيل',
+            'Delivered' => 'تم التوصيل'
+        ];
+        return $statusTranslations[$status] ?? $status;
+    }
+
+    public function translate(string $payment){
+        if($payment == 'paypal'){
+            return 'باي بال';
+        }
+        if($payment == 'cash'){
+            return 'كاش';
+        }
+        if($payment == 'credit_card'){
+            return 'دفع إلكتروني';
+        }
+}
 
     public function getOrderById($orderId)
     {
@@ -128,17 +148,15 @@ class OrderController extends Controller
         $order = Order::where('id', $orderId)
             ->where('user_id', $user->id)
             ->with(['orderItems.restaurantFood' => function ($query) use ($locale) {
-                // تعديل اسم الجدول هنا إلى "restaurant_food" إذا كان هذا هو الاسم الصحيح للجدول
                 $query->select(
-                    'restaurant_food.id', // معرف الطعام (تأكد أن الاسم صحيح في قاعدة البيانات)
-                    'restaurant_food.food_id', // معرف الطعام المرتبط بجدول food
-                    'restaurant_food.price' // سعر الطعام
+                    'restaurant_food.id',
+                    'restaurant_food.food_id',
+                    'restaurant_food.price'
                 )->with([
                     'food' => function ($query) use ($locale) {
-                        // جلب اسم الطعام بناءً على اللغة المحددة
                         $query->select(
-                            'id', // معرف الطعام
-                            "name_{$locale} as name" // اسم الطعام بناءً على اللغة
+                            'id',
+                            "name_{$locale} as name"
                         );
                     },
                 ]);
@@ -150,14 +168,14 @@ class OrderController extends Controller
         }
 
         // تجهيز البيانات للعرض
-        $orderDetails = $order->orderItems->map(function ($item) {
+        $orderDetails = $order->orderItems->map(function ($item) use ($locale) {  // هنا تم إضافة `use ($locale)`
             return [
                 'order_item_id' => $item->id,
                 'restaurant_food_id' => $item->restaurant_food_id,
                 'food_name' => $item->restaurantFood->food->name, // اسم الوجبة
                 'quantity' => $item->quantity,
                 'price_per_item' => $item->price,
-                //'total_price' => $item->quantity * $item->price, // يمكنك إضافة السعر الإجمالي إذا أردت
+                'status' => ($locale === 'ar') ? $this->getOrderStatus($item->restaurantFood->status ?? $item->status) : $item->status,
             ];
         });
 
@@ -165,15 +183,18 @@ class OrderController extends Controller
 
         return response()->json([
             'order_id' => $order->id,
-            'status' => $order->status,
+            // إذا كانت اللغة العربية يتم استدعاء التابع
+            'status' => ($locale === 'ar') ? $this->getOrderStatus($order->status) : $order->status,
             'order_date' => $order->created_at->setTimezone('Asia/Damascus')->toDateTimeString(),
             'items' => $orderDetails,
             'total_amount' => $order->total_amount,
             'delivery_fee' => $deliveryFee,
-            'final_total' => $order->total_amount + $deliveryFee, // إجمالي المبلغ مع رسوم التوصيل
-            'payment_method' => $order->payment_method, // طريقة الدفع
+            'final_total' => $order->total_amount + $deliveryFee,
+            'payment_method' => ($locale === 'ar') ? $this->translate($order->payment_method) : $order->payment_method,
         ], 200);
     }
+
+
     public function deleteOrder($orderId)
     {
         // استخدام المعاملة لضمان سلامة البيانات
@@ -210,5 +231,43 @@ class OrderController extends Controller
             DB::rollBack(); // التراجع عن العمليات في حالة حدوث خطأ
             return response()->json(['message' => 'حدث خطأ أثناء حذف الطلب', 'error' => $e->getMessage()], 500);
         }
+    }
+
+    public function updateOrderStatus(Request $request, $orderId)
+    {
+        // التحقق من صحة البيانات المُرسلة
+        $request->validate([
+            'status' => 'required|string|in:Under Preparation,Under delivery,Delivered',
+        ]);
+
+        // جلب الطلب باستخدام الـ ID
+        $order = Order::find($orderId);
+
+
+        if (!$order) {
+            return response()->json(['message' => 'الطلب غير موجود'], 200);
+        }
+
+        // تحقق من الحالة الحالية
+        if ($order->status === 'Under Preparation' && $request->status !== 'Under delivery') {
+            return response()->json(['message' => 'لا يمكن تحديث الحالة إلى هذه المرحلة مباشرة'], 400);
+        }
+
+        if ($order->status === 'Under delivery' && $request->status !== 'Delivered') {
+            return response()->json(['message' => 'لا يمكن تحديث الحالة إلى هذه المرحلة مباشرة'], 400);
+        }
+
+        if ($order->status === 'Delivered') {
+            return response()->json(['message' => 'الطلب مكتمل بالفعل ولا يمكن تغييره'
+            ], 400);
+        }
+
+        // تحديث الحالة
+        $order->update(['status' => $request->status]);
+        $order->refresh(); // هذا السطر يعيد تحميل الطلب بعد التحديث لضمان التحديث الفعلي
+
+        return response()->json(['message' => 'تم تحديث حالة الطلب بنجاح', 'order' => $order], 200);
+
+
     }
 }

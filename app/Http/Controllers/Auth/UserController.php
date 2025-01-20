@@ -8,13 +8,30 @@ use Illuminate\Support\Facades\Storage;
 
 class UserController extends Controller
 {
-
     public function showProfile()
+    {
+        $user = Auth::user();
+
+        $data = [
+            'first_name' => $user->first_name,
+            'last_name' => $user->last_name,
+            'profile_image' => $user->profile_image ? asset('storage/' . $user->profile_image) : null,
+            'latitude' => $user->latitude,
+            'longitude' => $user->longitude,
+        ];
+
+        return response()->json([
+            'message' => 'User profile',
+            'data' => $data,
+        ], 200);
+    }
+
+    public function showProfile2()
     {
         $user = Auth::user();
         $data = [
             'first_name' => $user->first_name,
-            'lasst_name'=>$user->last_name,
+            'last_name'=>$user->last_name,
             'profile_image'=> $user->profile_image,
             'latitude'=>$user->latitude,
             'longitude'=>$user->longitude

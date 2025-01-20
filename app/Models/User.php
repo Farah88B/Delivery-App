@@ -27,6 +27,7 @@ class User extends Authenticatable
         'preferred_language',
         'otp',
         'otp_expires_at',
+        'reset_code'
     ];
     protected $hidden = [
         'password',

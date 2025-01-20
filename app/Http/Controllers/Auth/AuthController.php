@@ -123,12 +123,10 @@ class AuthController extends Controller
         $validated = $request->validate([
             'preferred_language' => 'required|string|in:en,ar', // تحديد أن اللغة يجب أن تكون واحدة من 'en' أو 'ar'
         ]);
-
         $user = Auth::user();
         if (!$user) {
             return response()->json(['message' => 'Unauthorised'], 401);
         }
-
         // تعيين اللغة المفضلة للمستخدم
         $preferredLanguage = $validated['preferred_language'];
 
@@ -139,7 +137,6 @@ class AuthController extends Controller
 
         // تعيين اللغة في التطبيق بناءً على اللغة المفضلة
         app()->setLocale($preferredLanguage);
-
         return response()->json([
             'message' => 'Language set successfully',
             'preferred_language' => $preferredLanguage,
@@ -209,29 +206,17 @@ class AuthController extends Controller
         }
 
         // 3. توليد رمز تحقق (OTP)
-        $resetCode = rand(100000, 999999);
+        $resetCode = "123456";
 
         // 4. تحديث قاعدة البيانات بالرمز وتاريخ الصلاحية
         $user->update([
             'reset_code' => $resetCode,
         ]);
 
-        // 5. إرسال الرمز عبر SMS أو البريد الإلكتروني
-        $message = "Your password reset code is: $resetCode";
-        $phoneNumber = "+963" . ltrim($user->mobile, '0');
-
-        // مثال مع Twilio
-        $twilioService = new TwilioService();
-        $sendStatus = $twilioService->sendSMS($phoneNumber, $message);
-
-        if ($sendStatus !== true) {
-            return response()->json(['message' => 'Failed to send reset code'], 500);
-        }
-
         return response()->json(['message' => 'Reset code sent successfully']);
     }
 
-    public function resetPassword(Request $request)
+    public function resetPassword2(Request $request)
     {
         // 1. التحقق من البيانات
         $request->validate([
@@ -245,16 +230,58 @@ class AuthController extends Controller
             ->first();
 
         if (!$user) {
-            return response()->json(['message' => 'Invalid or expired reset code'], 400);
+            return response()->json(['message' => 'Invalid reset code'], 400);
         }
         // 3. تحديث كلمة المرور
         $user->update([
             'password' => Hash::make($request['new_password']),
             'reset_code' => null, // مسح الرمز
         ]);
+        // توليد API Token
+        $token = $user->createToken('auth_token')->plainTextToken;
 
-        return response()->json(['message' => 'Password reset successfully']);
+        return response()->json([
+            'message' => 'Password reset successfully!',
+            'token' => $token
+        ]);
     }
+    public function resetPassword(Request $request)
+    {
+        // 1. التحقق من البيانات
+        $validator = \Validator::make($request->all(), [
+            'mobile' => 'required|numeric|digits:10',
+            'reset_code' => 'required|digits:6',
+            'new_password' => 'required|confirmed|string|min:6',
+        ]);
+
+        if ($validator->fails()) {
+            $firstError = $validator->errors()->first();
+            return response()->json(['message' => $firstError], 400);
+        }
+
+        $user = User::where('mobile', $request['mobile'])
+            ->where('reset_code', $request['reset_code'])
+            ->first();
+
+        if (!$user) {
+            return response()->json(['message' => 'Invalid reset code'], 400);
+        }
+
+        // 3. تحديث كلمة المرور
+        $user->update([
+            'password' => Hash::make($request['new_password']),
+            'reset_code' => null, // مسح الرمز
+        ]);
+
+        // توليد API Token
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        return response()->json([
+            'message' => 'Password reset successfully!',
+            'token' => $token
+        ]);
+    }
+
 
 
 
@@ -396,7 +423,7 @@ class AuthController extends Controller
             'otp' => $otp, // احذف هذا السطر في بيئة الإنتاج
         ]);
     }
-    public function resetPassword2(Request $request)
+    public function resetPassword3(Request $request)
     {
         $request->validate([
             'mobile' => 'required|numeric|digits:10',

@@ -38,11 +38,11 @@ Route::prefix('/password')->group(function () {
     Route::post('/reset', [AuthController::class, 'resetPassword']);
 });
 
+
 Route::middleware(['auth:sanctum','checkLanguage'])->group(function () {
 
-    Route::post('/setLanguage', [AuthController::class, 'setLanguage']);
-
     Route::post('/changeLanguage', [AuthController::class, 'changeLanguage']);
+    Route::post('/setLanguage', [AuthController::class, 'setLanguage']);
 
     Route::post('/logout',[AuthController::class,'logout']);
 
@@ -83,6 +83,7 @@ Route::prefix('/foods')->group(function () {
         Route::get('/getAllOrders', [OrderController::class, 'getAllOrders']);
         Route::get('/{orderId}/getOrderById', [OrderController::class, 'getOrderById']);
         Route::delete('/{orderId}/deleteOrder', [OrderController::class, 'deleteOrder']);
+        Route::post('/{orderId}/status', [OrderController::class, 'updateOrderStatus']);
     });
     });
 

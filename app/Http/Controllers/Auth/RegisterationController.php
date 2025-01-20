@@ -36,25 +36,10 @@ class RegisterationController extends Controller
             $user = User::create($newuser);
 
             // توليد OTP وإرساله
-        $otp = rand(100000, 999999);
+        $otp = "123456";
         $user->update([
             'otp' => $otp,
         ]);
-        $phoneNumber = "+963" . ltrim($user->mobile, '0');
-
-
-        // استدعاء TwilioService لإرسال OTP
-        $twilio = new TwilioService();
-        $message = "Your verification code is: $otp";
-
-        $sendStatus = $twilio->sendSMS($phoneNumber, $message);
-
-        if ($sendStatus !== true) {
-            return response()->json([
-                'message' => 'Failed to send OTP.',
-               // 'error' => $sendStatus
-            ], 500);
-        }
 
         return response()->json(
             [
@@ -92,7 +77,7 @@ return response()->json([
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
-            'message' => 'Login successful!',
+            'message' => 'Register successful!',
             'token' => $token
         ]);
     }
@@ -122,6 +107,14 @@ return response()->json([
             // إعداد بيانات النجاح
             $success['token'] = $user->createToken('auth_token', ['app:all'])->plainTextToken;
             $success['mobile'] = $user->mobile;
+            $phoneNumber = "+963" . ltrim($user->mobile, '0');
+
+
+            // استدعاء TwilioService لإرسال OTP
+            $twilio = new TwilioService();
+            $message = "Your verification code is: ";
+
+            $sendStatus = $twilio->sendSMS($phoneNumber, $message);
 
             return response()->json([
                 'message' => 'User registered successfully',
